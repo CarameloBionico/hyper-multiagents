@@ -1,244 +1,196 @@
-# Documentação dos Hooks
+# Referência de Hooks
 
-Hooks são ações automáticas executadas em momentos específicos do workflow.
+## Visão Geral
 
-## Hook de Documentação
+Hooks são scripts que rodam automaticamente em pontos específicos do ciclo de vida do agente. Eles permitem observar, modificar ou bloquear ações.
 
-### Propósito
-Garantir que todo código inserido ou modificado esteja adequadamente documentado.
+## Hooks Disponíveis
 
-### Quando é Executado
-- Após cada tarefa concluída pelo agente EXECUTION
-- Antes de cada commit de tarefa
-- Pode ser chamado manualmente
+### verify-documentation
 
-### O que Verifica
+**Trigger**: `afterFileEdit`
 
-#### Para TypeScript/JavaScript
-- Funções exportadas têm JSDoc/TSDoc
-- Interfaces/Types têm descrição
-- Parâmetros complexos documentados
-- Retornos documentados
-- Exceções documentadas (@throws)
-- Exemplos de uso quando útil (@example)
+**Função**: Verifica se o código editado tem documentação adequada seguindo Google Style Guide.
 
-#### Para Python
-- Funções/métodos têm docstrings
-- Classes têm docstrings
-- Parâmetros documentados (Args:)
-- Retornos documentados (Returns:)
-- Exceções documentadas (Raises:)
+**Verificações**:
+- Exports sem JSDoc
+- Funções públicas sem documentação
+- Classes sem documentação
 
-### Fluxo de Execução
-
-```
-┌─────────────────────────────────────────┐
-│         Tarefa Concluída                │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│   Identificar arquivos modificados      │
-│   git diff --name-only HEAD~1           │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│   Para cada arquivo:                    │
-│   - Verificar funções documentadas      │
-│   - Verificar interfaces documentadas   │
-│   - Verificar classes documentadas      │
-└─────────────────┬───────────────────────┘
-                  │
-            ┌─────┴─────┐
-            │           │
-      [Completa]   [Faltando]
-            │           │
-            │           ▼
-            │    ┌────────────────┐
-            │    │ Gerar docs     │
-            │    │ automaticamente│
-            │    │ (@dev-docs)    │
-            │    └───────┬────────┘
-            │            │
-            └──────┬─────┘
-                   │
-                   ▼
-            [Prosseguir]
-```
-
-### Exemplo de Verificação
-
-```markdown
-## Verificação de Documentação
-
-### Arquivo: src/services/product.service.ts
-
-#### Funções
-| Função | JSDoc | Params | Return | Status |
-|--------|-------|--------|--------|--------|
-| create | ✅ | ✅ | ✅ | OK |
-| update | ❌ | - | - | PENDENTE |
-| delete | ✅ | ✅ | ✅ | OK |
-
-#### Interfaces
-| Nome | Descrição | Props | Status |
-|------|-----------|-------|--------|
-| Product | ✅ | ✅ | OK |
-| CreateDTO | ❌ | ❌ | PENDENTE |
-```
-
-### Completação Automática
-
-Quando documentação faltante é detectada:
-
-1. **Analisa contexto**
-   - Lê código da função
-   - Entende propósito pelo uso
-   - Identifica parâmetros e retornos
-
-2. **Gera documentação**
-   ```typescript
-   // Antes
-   async function updateProduct(id: string, data: UpdateDTO) {
-     // ...
-   }
-
-   // Depois
-   /**
-    * Atualiza um produto existente.
-    *
-    * @param id - ID do produto a atualizar
-    * @param data - Dados para atualização
-    * @returns Produto atualizado
-    * @throws {NotFoundError} Se produto não existe
-    */
-   async function updateProduct(id: string, data: UpdateDTO) {
-     // ...
-   }
-   ```
-
-3. **Aplica mudanças**
-   - Insere documentação no código
-   - Mantém estilo consistente
-
-### Output
-
-#### Sucesso (Sem Ações)
-```
-📝 Hook de Documentação - product.service.ts
-
-✅ Documentação verificada e completa
-
-Elementos documentados:
-  - 5 funções
-  - 3 interfaces
-
-Nenhuma ação necessária.
-```
-
-#### Com Correções
-```
-📝 Hook de Documentação - product.service.ts
-
-⚠️ Documentação incompleta detectada
-
-Ações realizadas:
-  ✅ Adicionado JSDoc: updateProduct()
-  ✅ Documentada interface: UpdateProductDTO
-
-Elementos agora documentados:
-  - 5/5 funções ✅
-  - 3/3 interfaces ✅
-```
-
-### Configuração
-
-#### Arquivos Ignorados
-- `*.test.ts` - Arquivos de teste
-- `*.spec.ts` - Arquivos de spec
-- `*.d.ts` - Arquivos de definição
-- `index.ts` - Arquivos barrel
-- `*.config.*` - Configurações
-
-#### Níveis de Rigor
-
-```yaml
-documentation:
-  level: strict  # strict | moderate | minimal
-
-  strict:
-    - all_exports_documented
-    - all_params_documented
-    - all_returns_documented
-    - examples_for_complex
-
-  moderate:
-    - all_exports_documented
-    - complex_params_documented
-
-  minimal:
-    - public_functions_documented
-```
-
-### Arquivo de Regras
-`.cursor/rules/hook-documentation.mdc`
+**Saída**: Log em `.cursor/hooks/logs/documentation.log`
 
 ---
 
-## Adicionando Novos Hooks
+### check-formatting
 
-### Estrutura de um Hook
+**Trigger**: `afterFileEdit`
 
-```markdown
-# Hook de {Nome}
+**Função**: Verifica formatação do código contra padrões do Google Style Guide.
 
-## Propósito
-{Descrição do que o hook faz}
+**Verificações**:
+- Indentação (2 espaços JS/TS, 4 espaços Python)
+- Comprimento de linha (máx 100)
+- Trailing whitespace
+- Newline no final do arquivo
+- Uso de `var` vs `const/let`
+- `==` vs `===`
 
-## Quando é Executado
-- {Trigger 1}
-- {Trigger 2}
+**Saída**: Log em `.cursor/hooks/logs/formatting.log`
 
-## O que Verifica/Faz
-{Lista de verificações ou ações}
+---
 
-## Fluxo de Execução
-{Diagrama ou passos}
+### execution-summary
 
-## Output
-{Exemplos de output}
+**Trigger**: `stop`
+
+**Função**: Gera resumo quando a execução do agente termina.
+
+**Informações**:
+- Status da sessão
+- Número de loops
+- Issues de documentação encontradas
+- Issues de formatação encontradas
+
+**Saída**: Log em `.cursor/hooks/logs/sessions.log`
+
+---
+
+### audit-commands
+
+**Trigger**: `beforeShellExecution`
+
+**Função**: Audita comandos shell antes da execução.
+
+**Ações**:
+- **Bloqueia**: Comandos destrutivos (`rm -rf /`, fork bombs, etc.)
+- **Pede confirmação**: Comandos sensíveis (`git push`, `npm publish`, etc.)
+- **Permite**: Comandos seguros
+
+**Saída**: Log em `.cursor/hooks/logs/commands.log`
+
+---
 
 ## Configuração
-{Opções configuráveis}
+
+Os hooks são configurados em `.cursor/hooks.json`:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      { "command": "node .cursor/hooks/verify-documentation.js" },
+      { "command": "node .cursor/hooks/check-formatting.js" }
+    ],
+    "stop": [
+      { "command": "node .cursor/hooks/execution-summary.js" }
+    ],
+    "beforeShellExecution": [
+      { "command": "node .cursor/hooks/audit-commands.js" }
+    ]
+  }
+}
 ```
 
-### Integrando ao Sistema
+## Criando Novos Hooks
 
-1. Criar arquivo `.cursor/rules/hook-{nome}.mdc`
-2. Definir triggers (quando executar)
-3. Definir ações (o que fazer)
-4. Integrar ao agente apropriado
-5. Documentar em `docs/hooks.md`
+### Estrutura Básica
 
-### Exemplo: Hook de Lint
+```javascript
+#!/usr/bin/env node
 
-```markdown
-# Hook de Lint
+// Read input from stdin
+let input = '';
+process.stdin.on('data', (chunk) => {
+  input += chunk;
+});
 
-## Propósito
-Verificar se código segue padrões de estilo.
+process.stdin.on('end', () => {
+  try {
+    const data = JSON.parse(input);
+    const result = processHook(data);
+    console.log(JSON.stringify(result));
+    process.exit(0);
+  } catch (error) {
+    console.error('Hook error:', error.message);
+    process.exit(0); // Don't block on errors
+  }
+});
 
-## Quando é Executado
-- Após cada tarefa concluída
-- Antes de commits
+function processHook(data) {
+  // Your logic here
+  return { continue: true };
+}
+```
 
-## O que Verifica
-- ESLint rules
-- Prettier formatting
-- TypeScript strict mode
+### Input por Tipo de Hook
 
-## Ações
-- Se erros: tentar fix automático
-- Se warnings: reportar mas continuar
+**afterFileEdit**:
+```json
+{
+  "file_path": "/path/to/file.ts",
+  "edits": [{ "old_string": "...", "new_string": "..." }]
+}
+```
+
+**beforeShellExecution**:
+```json
+{
+  "command": "npm install",
+  "cwd": "/path/to/project"
+}
+```
+
+**stop**:
+```json
+{
+  "status": "completed",
+  "loop_count": 5,
+  "conversation_id": "abc123"
+}
+```
+
+### Output
+
+**Permitir ação**:
+```json
+{ "continue": true }
+```
+
+**Bloquear ação**:
+```json
+{
+  "continue": true,
+  "permission": "deny",
+  "user_message": "Mensagem para o usuário",
+  "agent_message": "Mensagem para o agente"
+}
+```
+
+**Pedir confirmação**:
+```json
+{
+  "continue": true,
+  "permission": "ask",
+  "user_message": "Deseja continuar?"
+}
+```
+
+## Logs
+
+Todos os hooks escrevem logs em `.cursor/hooks/logs/`:
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `documentation.log` | Issues de documentação por arquivo |
+| `formatting.log` | Issues de formatação por arquivo |
+| `commands.log` | Histórico de comandos executados |
+| `sessions.log` | Resumo de cada sessão |
+
+### Formato do Log
+
+```
+[2024-01-15T10:30:00.000Z] /path/to/file.ts
+  - Line 15: Export 'functionName' missing JSDoc documentation
+  - Line 42: Function 'helper' missing JSDoc documentation
 ```

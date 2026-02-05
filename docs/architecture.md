@@ -1,365 +1,148 @@
-# Arquitetura do Sistema Multi-Agente
+# Arquitetura do Sistema
 
 ## Visão Geral
 
-O sistema é composto por três camadas principais:
-
-1. **Camada de Commands** - Interface com o usuário
-2. **Camada de Agentes** - Orquestração do workflow
-3. **Camada de Sub-Agentes** - Execução especializada
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CAMADA DE COMMANDS                        │
-│  /issue  /start  /plan  /execute  /test  /pr  /merge        │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    CAMADA DE AGENTES                         │
-│                                                              │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────────────┐ │
-│  │  ISSUE  │→ │  START  │→ │  PLAN   │→ │   EXECUTION     │ │
-│  └─────────┘  └─────────┘  └─────────┘  └────────┬────────┘ │
-│                                                   │          │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐           │          │
-│  │  MERGE  │← │   PR    │← │  TEST   │←──────────┘          │
-│  └─────────┘  └─────────┘  └─────────┘                      │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  CAMADA DE SUB-AGENTES                       │
-│                                                              │
-│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐  │
-│  │ dev-backend  │  │ dev-frontend  │  │   dev-database   │  │
-│  └──────────────┘  └───────────────┘  └──────────────────┘  │
-│                                                              │
-│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐  │
-│  │   dev-test   │  │   dev-infra   │  │    dev-docs      │  │
-│  └──────────────┘  └───────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+O Hyper MultiAgents é um sistema de orquestração de agentes de IA para desenvolvimento de software, projetado para funcionar dentro do Cursor IDE.
 
 ## Componentes
 
-### 1. Commands (Interface)
+### 1. Commands (Agentes Principais)
 
-Os commands são a interface entre o usuário e o sistema. Cada command aciona um agente específico.
+Os commands são os agentes de alto nível que orquestram o workflow de desenvolvimento.
 
-| Command | Agente | Propósito |
-|---------|--------|-----------|
-| `/issue` | ISSUE | Criar issue no GitHub |
-| `/start` | START | Iniciar trabalho (branch, estrutura) |
-| `/plan` | PLAN | Criar plano de execução |
-| `/execute` | EXECUTION | Executar implementação |
-| `/test` | TEST | Rodar e validar testes |
-| `/pr` | PR | Criar Pull Request |
-| `/merge` | MERGE | Fazer merge do PR |
-
-### 2. Agentes (Orquestração)
-
-Os agentes são responsáveis por coordenar o workflow e garantir que cada etapa seja completada corretamente.
-
-#### Fluxo de Dados
-
-```
-Issue (GitHub)
-    │
-    ▼
-┌─────────────────┐
-│ issues/issue-N/ │
-├─────────────────┤
-│ CONTEXT.md      │ ← START (cria)
-│ ARCHITECTURE.md │ ← START (cria)
-│ PLAN.md         │ ← PLAN (cria)
-│ PROGRESS.md     │ ← Todos (atualizam)
-│ TEST_REPORT.md  │ ← TEST (cria)
-│ NOTES.md        │ ← Opcional
-└─────────────────┘
+```mermaid
+graph TD
+    subgraph "Workflow Principal"
+        A[agent-issue] -->|Cria Issue| B[agent-start]
+        B -->|Prepara Ambiente| C[agent-plan]
+        C -->|Cria Checklist| D[agent-execute]
+        D -->|Implementa| E[agent-test]
+        E -->|Valida| F[agent-pr]
+        F -->|Documenta| G[agent-merge]
+    end
 ```
 
-#### Responsabilidades
+**Características:**
+- Definidos como arquivos Markdown em `.cursor/commands/`
+- Invocados via `/nome-do-command` no chat
+- Contêm instruções detalhadas para o modelo de IA
 
-| Agente | Input | Output | Próximo |
-|--------|-------|--------|---------|
-| ISSUE | Descrição do usuário | Issue no GitHub | START |
-| START | Número da issue | Branch + estrutura | PLAN |
-| PLAN | CONTEXT + ARCHITECTURE | PLAN.md (checklist) | EXECUTION |
-| EXECUTION | PLAN.md | Código implementado | TEST |
-| TEST | Código | TEST_REPORT.md | PR |
-| PR | Tudo documentado | Pull Request | MERGE |
-| MERGE | PR aprovado | Código em main | - |
+### 2. Sub-agentes (Especialistas)
 
-### 3. Sub-Agentes (Especialização)
+Os sub-agentes são especialistas em domínios específicos, invocados pelo `agent-execute`.
 
-Os sub-agentes são especialistas em domínios específicos, chamados pelo agente EXECUTION.
-
-```
-EXECUTION
-    │
-    ├──► @dev-backend   ─── APIs, serviços, lógica
-    │
-    ├──► @dev-frontend  ─── UI, componentes, UX
-    │
-    ├──► @dev-database  ─── Schemas, migrations, queries
-    │
-    ├──► @dev-test      ─── Testes unitários/integração
-    │
-    ├──► @dev-infra     ─── CI/CD, Docker, deploy
-    │
-    └──► @dev-docs      ─── Documentação técnica
+```mermaid
+graph TD
+    subgraph "Execução"
+        E[agent-execute]
+        E -->|Backend| B[dev-backend]
+        E -->|Frontend| F[dev-frontend]
+        E -->|Database| D[dev-database]
+        E -->|Testes| T[dev-test]
+        E -->|Docs| O[dev-docs]
+    end
 ```
 
-### 4. Hooks (Automação)
+**Características:**
+- Definidos como arquivos Markdown em `.cursor/agents/`
+- Contêm frontmatter YAML com configurações
+- Podem ser invocados via ferramenta Task ou diretamente
 
-Hooks são ações automáticas executadas em momentos específicos.
+### 3. Hooks (Automação)
 
-#### Hook de Documentação
+Os hooks são scripts que rodam automaticamente em pontos específicos do ciclo de vida do agente.
 
-```
-┌─────────────────────────────────────────┐
-│            Hook de Documentação          │
-├─────────────────────────────────────────┤
-│                                          │
-│  Tarefa Concluída                        │
-│        │                                 │
-│        ▼                                 │
-│  ┌───────────────────┐                   │
-│  │ Identificar       │                   │
-│  │ arquivos mudados  │                   │
-│  └─────────┬─────────┘                   │
-│            │                             │
-│            ▼                             │
-│  ┌───────────────────┐                   │
-│  │ Verificar         │                   │
-│  │ documentação      │                   │
-│  └─────────┬─────────┘                   │
-│            │                             │
-│       ┌────┴────┐                        │
-│       │         │                        │
-│       ▼         ▼                        │
-│   [Completa] [Faltando]                  │
-│       │         │                        │
-│       │         ▼                        │
-│       │  ┌─────────────┐                 │
-│       │  │ Gerar docs  │                 │
-│       │  │ (@dev-docs) │                 │
-│       │  └──────┬──────┘                 │
-│       │         │                        │
-│       └────┬────┘                        │
-│            │                             │
-│            ▼                             │
-│      [Prosseguir]                        │
-│                                          │
-└─────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant H as Hook
+    participant F as File System
+    
+    A->>F: Edita arquivo
+    F->>H: afterFileEdit trigger
+    H->>H: verify-documentation
+    H->>H: check-formatting
+    H->>F: Salva log
+    H->>A: Retorna feedback
 ```
 
-## Fluxo de Execução Detalhado
+**Características:**
+- Scripts JavaScript em `.cursor/hooks/`
+- Configurados em `.cursor/hooks.json`
+- Podem bloquear, modificar ou apenas observar ações
 
-### Fase 1: Criação (ISSUE → START)
+## Fluxo de Dados
 
-```
-Usuário: "Criar API de produtos"
-           │
-           ▼
-┌─────────────────────────────────────┐
-│ ISSUE                               │
-│ • Analisa descrição                 │
-│ • Estrutura issue                   │
-│ • Cria no GitHub                    │
-│ • Retorna: Issue #42                │
-└─────────────┬───────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────┐
-│ START                               │
-│ • Busca detalhes da #42             │
-│ • Cria branch issue-42/feature-api  │
-│ • Cria issues/issue-42/             │
-│ • Documenta contexto                │
-│ • Propõe arquitetura                │
-└─────────────────────────────────────┘
-```
-
-### Fase 2: Planejamento (PLAN)
+### Documentação de Issue
 
 ```
-┌─────────────────────────────────────┐
-│ PLAN                                │
-│ • Lê CONTEXT.md                     │
-│ • Lê ARCHITECTURE.md                │
-│ • Quebra em tarefas atômicas        │
-│ • Atribui a sub-agentes             │
-│ • Gera PLAN.md com checklist        │
-└─────────────────────────────────────┘
-
-PLAN.md:
-├── Fase 1: Preparação
-│   └── 1.1 Criar estrutura @dev-backend
-├── Fase 2: Backend
-│   ├── 2.1 Criar modelo @dev-database
-│   ├── 2.2 Criar service @dev-backend
-│   └── 2.3 Criar rotas @dev-backend
-├── Fase 3: Testes
-│   └── 3.1 Testes unitários @dev-test
-└── Fase 4: Docs
-    └── 4.1 Documentar API @dev-docs
+.issues/{numero}/
+├── CONTEXT.md      ← agent-start cria
+├── ARCHITECTURE.md ← agent-start cria
+├── PLAN.md         ← agent-plan cria
+└── NOTES.md        ← agent-execute atualiza
 ```
 
-### Fase 3: Implementação (EXECUTION)
+### Logs de Hooks
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ EXECUTION                                               │
-│                                                         │
-│  Para cada tarefa no PLAN.md:                          │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ 1. Identificar sub-agente                       │   │
-│  │ 2. Preparar contexto                            │   │
-│  │ 3. Executar sub-agente                          │   │
-│  │ 4. Verificar resultado                          │   │
-│  │ 5. Executar hook de documentação                │   │
-│  │ 6. Commit                                       │   │
-│  │ 7. Atualizar PLAN.md (✓) e PROGRESS.md          │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+.cursor/hooks/logs/
+├── documentation.log ← verify-documentation
+├── formatting.log    ← check-formatting
+├── commands.log      ← audit-commands
+└── sessions.log      ← execution-summary
 ```
 
-### Fase 4: Validação (TEST)
+## Padrões de Design
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ TEST                                                    │
-│                                                         │
-│  1. Executar testes unitários                          │
-│  2. Executar testes de integração                      │
-│  3. Analisar resultados                                │
-│                                                         │
-│     ┌─────────────────┐                                │
-│     │ Testes passaram │──────► Gerar TEST_REPORT.md    │
-│     └────────┬────────┘                                │
-│              │                                          │
-│     ┌────────▼────────┐                                │
-│     │ Testes falharam │                                │
-│     └────────┬────────┘                                │
-│              │                                          │
-│     ┌────────▼────────┐                                │
-│     │ Tentar correção │ (máx 3x)                       │
-│     └────────┬────────┘                                │
-│              │                                          │
-│         ┌────┴────┐                                    │
-│         │         │                                    │
-│    [Corrigido] [Falhou]                               │
-│         │         │                                    │
-│         │    [Escalar para usuário]                   │
-│         │                                              │
-│         ▼                                              │
-│    [Prosseguir para PR]                               │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+### 1. Separação de Responsabilidades
 
-### Fase 5: Entrega (PR → MERGE)
+Cada agente tem uma responsabilidade única e bem definida:
+- `agent-issue`: Criação de issues
+- `agent-start`: Preparação de ambiente
+- `agent-plan`: Planejamento
+- `agent-execute`: Implementação
+- `agent-test`: Validação
+- `agent-pr`: Documentação de mudanças
+- `agent-merge`: Integração
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ PR                                                      │
-│                                                         │
-│  1. Compilar todas as mudanças                         │
-│  2. Verificar branch atualizado                        │
-│  3. Gerar descrição do PR                              │
-│  4. Criar PR no GitHub                                 │
-│  5. Solicitar reviewers                                │
-│                                                         │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
-                    [Aguardar Review]
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│ MERGE                                                   │
-│                                                         │
-│  1. Verificar aprovação                                │
-│  2. Verificar CI/CD                                    │
-│  3. Atualizar branch                                   │
-│                                                         │
-│     ┌─────────────────┐                                │
-│     │ Conflitos?      │                                │
-│     └────────┬────────┘                                │
-│              │                                          │
-│         ┌────┴────┐                                    │
-│         │         │                                    │
-│      [Não]    [Sim]                                   │
-│         │         │                                    │
-│         │    ┌────┴────┐                              │
-│         │    │         │                              │
-│         │ [Simples] [Complexo]                        │
-│         │    │         │                              │
-│         │ [Auto]  [Perguntar]                         │
-│         │    │         │                              │
-│         └────┴────┬────┘                              │
-│                   │                                    │
-│                   ▼                                    │
-│            [Squash Merge]                             │
-│                   │                                    │
-│                   ▼                                    │
-│            [Fechar Issue]                             │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+### 2. Delegação
 
-## Comunicação entre Componentes
+O `agent-execute` delega tarefas especializadas para sub-agentes apropriados, baseado em tags no plano (`@dev-backend`, `@dev-frontend`, etc.).
 
-### Arquivos como Interface
+### 3. Observabilidade
 
-Os agentes se comunicam através de arquivos Markdown estruturados:
+Hooks de auditoria e logging garantem rastreabilidade de todas as ações:
+- Comandos executados
+- Arquivos modificados
+- Issues de qualidade encontradas
 
-```
-CONTEXT.md ────────► PLAN.md
-ARCHITECTURE.md ───┘    │
-                        │
-                        ▼
-                   PROGRESS.md
-                        │
-                        ▼
-                  TEST_REPORT.md
-                        │
-                        ▼
-                    PR Description
-```
+### 4. Fail-Safe
 
-### Padrão de Handoff
-
-Cada agente:
-1. **Lê** arquivos do agente anterior
-2. **Processa** conforme suas regras
-3. **Gera** novos arquivos ou atualiza existentes
-4. **Confirma** conclusão
-5. **Sugere** próximo passo
+Hooks de segurança bloqueiam comandos potencialmente perigosos e solicitam confirmação para ações sensíveis.
 
 ## Extensibilidade
 
-### Adicionando Novos Sub-Agentes
+### Adicionando Novos Agentes
 
-1. Criar arquivo `.cursor/rules/subagent-{nome}.mdc`
-2. Definir especialização e padrões
-3. Atualizar agente EXECUTION para reconhecer
-4. Documentar em `docs/subagents.md`
+1. **Command**: Criar arquivo em `.cursor/commands/` seguindo o template
+2. **Sub-agente**: Criar arquivo em `.cursor/agents/` com frontmatter YAML
 
 ### Adicionando Novos Hooks
 
-1. Criar arquivo `.cursor/rules/hook-{nome}.mdc`
-2. Definir trigger e ações
-3. Integrar ao agente apropriado
-4. Documentar em `docs/hooks.md`
+1. Criar script em `.cursor/hooks/`
+2. Registrar em `.cursor/hooks.json`
+3. Implementar leitura de stdin JSON e saída de stdout JSON
 
-### Adicionando Novos Commands
+## Considerações de Segurança
 
-1. Criar arquivo `.cursor/rules/commands/{nome}.md`
-2. Definir uso e fluxo
-3. Criar agente se necessário
-4. Documentar em `docs/commands.md`
+1. **Auditoria**: Todos os comandos são logados
+2. **Bloqueio**: Comandos destrutivos são bloqueados
+3. **Confirmação**: Operações sensíveis requerem aprovação
+4. **Isolamento**: Sub-agentes rodam em contexto próprio
+
+## Limitações Conhecidas
+
+1. Hooks dependem de Node.js estar disponível
+2. Integração com GitHub requer CLI `gh` configurada
+3. Sub-agentes não podem invocar outros sub-agentes (limitação do Cursor)

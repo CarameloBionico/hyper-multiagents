@@ -1,0 +1,38 @@
+[2026-02-05T04:44:58.377Z] d:\Code\hyper-multiagents\.cursor\hooks\verify-documentation.js
+  - Line 51: Line too long (104 > 100)
+  - Line 89: Line too long (247 > 100)
+  - Line 5: Trailing whitespace
+  - Line 33: Trailing whitespace
+  - Line 41: Trailing whitespace
+  - Line 45: Trailing whitespace
+  - Line 49: Trailing whitespace
+
+[2026-02-05T04:45:04.622Z] d:\Code\hyper-multiagents\.cursor\hooks\execution-summary.js
+  - Line 53: Line too long (126 > 100)
+  - Line 82: Line too long (158 > 100)
+  - Line 5: Trailing whitespace
+  - Line 34: Trailing whitespace
+  - Line 43: Trailing whitespace
+  - Line 46: Trailing whitespace
+  - Line 51: Trailing whitespace
+
+[2026-02-05T04:45:10.073Z] d:\Code\hyper-multiagents\.cursor\hooks\check-formatting.js
+  - Line 87: Line too long (219 > 100)
+  - Line 5: Trailing whitespace
+  - Line 33: Trailing whitespace
+  - Line 41: Trailing whitespace
+  - Line 45: Trailing whitespace
+  - Line 49: Trailing whitespace
+  - Line 214: Use 'const' or 'let' instead of 'var'
+  - Line 219: Use '===' instead of '=='
+  - Line 221: Use '===' instead of '=='
+
+[2026-02-05T04:45:16.673Z] d:\Code\hyper-multiagents\.cursor\hooks\audit-commands.js
+  - Line 72: Line too long (133 > 100)
+  - Line 92: Line too long (114 > 100)
+  - Line 5: Trailing whitespace
+  - Line 34: Trailing whitespace
+  - Line 42: Trailing whitespace
+  - Line 45: Trailing whitespace
+  - Line 50: Trailing whitespace
+

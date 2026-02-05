@@ -1,436 +1,166 @@
 # Referência de Commands
 
-Este documento descreve todos os commands disponíveis no sistema multi-agente.
+## agent-issue
 
-## Resumo
+**Propósito**: Transformar descrições em issues bem estruturadas.
 
-| Command | Propósito | Uso |
-|---------|-----------|-----|
-| `/issue` | Criar issue | `/issue <descrição>` |
-| `/start` | Iniciar trabalho | `/start <numero>` |
-| `/plan` | Criar plano | `/plan <numero>` |
-| `/execute` | Implementar | `/execute <numero>` |
-| `/test` | Testar | `/test <numero>` |
-| `/pr` | Criar PR | `/pr <numero>` |
-| `/merge` | Fazer merge | `/merge <numero>` |
+**Uso**:
+```
+/agent-issue Implementar feature X com Y e Z
+```
+
+**Saída**:
+- Issue criada no GitHub
+- Número e link da issue
+
+**Exemplo de Issue Gerada**:
+```markdown
+## Descrição
+Implementar feature X com Y e Z...
+
+## Critérios de Aceitação
+- [ ] Critério 1
+- [ ] Critério 2
+
+## Notas Técnicas
+...
+```
 
 ---
 
-## /issue
+## agent-start
 
-### Descrição
-Cria uma nova issue no repositório GitHub a partir de uma descrição em linguagem natural.
+**Propósito**: Preparar ambiente de desenvolvimento para uma issue.
 
-### Sintaxe
+**Uso**:
 ```
-/issue <descrição da tarefa>
-```
-
-### Exemplos
-```
-/issue Criar API REST para gerenciamento de produtos com CRUD completo
-
-/issue Corrigir bug de autenticação que expira token antes do tempo
-
-/issue Refatorar camada de acesso a dados para usar repository pattern
+/agent-start #123
+/agent-start  # Usa última issue atribuída
 ```
 
-### O que faz
-1. Analisa a descrição fornecida
-2. Identifica tipo de tarefa (feature, bug, refactor)
-3. Estrutura a issue com:
-   - Título claro e conciso
-   - Descrição detalhada
-   - Critérios de aceite
-   - Labels apropriadas
-4. Cria a issue no GitHub
+**Ações**:
+1. Busca detalhes da issue
+2. Cria branch `feature/issue-123-slug`
+3. Cria pasta `.issues/123/`
+4. Documenta contexto e arquitetura
 
-### Output
-```
-✅ Issue criada com sucesso!
-
-📋 Issue #42: Criar API REST de gerenciamento de produtos
-🏷️ Labels: feature, backend
-🔗 Link: https://github.com/user/repo/issues/42
-
-Próximo passo:
-  /start 42
-```
-
-### Arquivo de Regras
-`.cursor/rules/commands/issue.md`
+**Saída**:
+- Branch criado
+- Arquivos CONTEXT.md e ARCHITECTURE.md
 
 ---
 
-## /start
+## agent-plan
 
-### Descrição
-Inicia o trabalho em uma issue existente, criando branch e estrutura de documentação.
+**Propósito**: Criar plano de execução detalhado.
 
-### Sintaxe
+**Uso**:
 ```
-/start <numero-issue>
-```
-
-### Exemplos
-```
-/start 42
-/start 15
-/start 128
+/agent-plan #123
 ```
 
-### O que faz
-1. Busca detalhes da issue no GitHub
-2. Cria branch com padrão de nomenclatura
-3. Cria pasta `issues/issue-{numero}/`
-4. Gera arquivos de documentação:
-   - `CONTEXT.md` - Contexto e requisitos
-   - `ARCHITECTURE.md` - Arquitetura proposta
-   - `PROGRESS.md` - Log de progresso
-   - `NOTES.md` - Anotações
-5. Faz commit inicial
+**Pré-requisitos**:
+- CONTEXT.md existente
+- ARCHITECTURE.md existente
 
-### Output
-```
-✅ Issue #42 iniciada!
-
-🌿 Branch: issue-42/feature-product-api
-📁 Pasta: issues/issue-42/
-
-📄 Arquivos criados:
-  - CONTEXT.md
-  - ARCHITECTURE.md
-  - PROGRESS.md
-  - NOTES.md
-
-Próximo passo:
-  /plan 42
-```
-
-### Pré-requisitos
-- Issue deve existir no GitHub
-- Repositório git configurado
-
-### Arquivo de Regras
-`.cursor/rules/commands/start.md`
+**Saída**:
+- PLAN.md com checklist de tarefas
+- Tarefas marcadas com sub-agentes responsáveis
 
 ---
 
-## /plan
+## agent-execute
 
-### Descrição
-Cria um plano de execução detalhado com checklist de tarefas atômicas.
+**Propósito**: Executar o plano de implementação.
 
-### Sintaxe
+**Uso**:
 ```
-/plan <numero-issue>
-```
-
-### Exemplos
-```
-/plan 42
-/plan 15
+/agent-execute #123
 ```
 
-### O que faz
-1. Lê `CONTEXT.md` e `ARCHITECTURE.md`
-2. Analisa escopo e complexidade
-3. Quebra em tarefas de 15-30 minutos
-4. Atribui cada tarefa a um sub-agente
-5. Define ordem de execução
-6. Gera `PLAN.md` com checklist
+**Pré-requisitos**:
+- PLAN.md existente
 
-### Output
-```
-✅ Plano criado para Issue #42!
+**Ações**:
+1. Lê PLAN.md
+2. Executa tarefas em ordem
+3. Delega para sub-agentes quando marcado
+4. Atualiza status no PLAN.md
 
-📋 PLAN.md gerado com:
-
-Fase 1: Preparação (2 tarefas)
-Fase 2: Backend (4 tarefas)
-Fase 3: Testes (2 tarefas)
-Fase 4: Documentação (1 tarefa)
-
-📊 Resumo:
-  - Total de tarefas: 9
-  - Sub-agentes envolvidos: 4
-
-Próximo passo:
-  /execute 42
-```
-
-### Pré-requisitos
-- `/start {numero}` executado
-- `CONTEXT.md` e `ARCHITECTURE.md` existentes
-
-### Arquivo de Regras
-`.cursor/rules/commands/plan.md`
+**Sub-agentes**:
+- `@dev-backend` → dev-backend
+- `@dev-frontend` → dev-frontend
+- `@dev-database` → dev-database
+- `@dev-test` → dev-test
 
 ---
 
-## /execute
+## agent-test
 
-### Descrição
-Executa o plano de implementação, chamando sub-agentes para cada tarefa.
+**Propósito**: Executar e corrigir testes.
 
-### Sintaxe
+**Uso**:
 ```
-/execute <numero-issue>
-```
-
-### Exemplos
-```
-/execute 42
-/execute 15
+/agent-test #123
+/agent-test  # Roda todos os testes
 ```
 
-### O que faz
-Para cada tarefa no `PLAN.md`:
-1. Identifica sub-agente responsável
-2. Prepara contexto para o sub-agente
-3. Executa implementação
-4. Verifica resultado (compila, linter)
-5. Executa hook de documentação
-6. Faz commit da tarefa
-7. Marca como concluída
-8. Atualiza `PROGRESS.md`
+**Ações**:
+1. Detecta framework de teste
+2. Executa suíte de testes
+3. Analisa falhas
+4. Tenta corrigir (máx 3 tentativas)
 
-### Output
-```
-🚀 Executando plano da Issue #42...
-
-📌 Tarefa 1.1: Configurar estrutura
-   🤖 Sub-agente: @dev-backend
-   ⏱️ Status: ✅ Concluída
-   💾 Commit: abc123
-
-... (para cada tarefa)
-
-✅ Execução concluída!
-
-📊 Resumo:
-  - Tarefas executadas: 9/9
-  - Commits realizados: 9
-
-Próximo passo:
-  /test 42
-```
-
-### Pré-requisitos
-- `/plan {numero}` executado
-- `PLAN.md` existente
-
-### Arquivo de Regras
-`.cursor/rules/commands/execute.md`
+**Saída**:
+- Relatório de testes
+- Correções aplicadas
 
 ---
 
-## /test
+## agent-pr
 
-### Descrição
-Executa testes e tenta corrigir falhas automaticamente.
+**Propósito**: Preparar e criar Pull Request.
 
-### Sintaxe
+**Uso**:
 ```
-/test <numero-issue>
-```
-
-### Exemplos
-```
-/test 42
-/test 15
+/agent-pr #123
 ```
 
-### O que faz
-1. Executa testes unitários com cobertura
-2. Executa testes de integração
-3. Analisa resultados
-4. Para falhas:
-   - Analisa causa
-   - Tenta correção automática (máx 3x)
-   - Escala para usuário se necessário
-5. Gera `TEST_REPORT.md`
+**Pré-requisitos**:
+- Testes passando
+- Branch com commits
 
-### Output (Sucesso)
-```
-🧪 Executando testes da Issue #42...
+**Ações**:
+1. Coleta informações da issue
+2. Gera diff das mudanças
+3. Cria PR com template completo
 
-📦 Testes Unitários
-   Total: 24
-   ✅ Passou: 24
-   📊 Cobertura: 92%
-
-🔗 Testes de Integração
-   Total: 8
-   ✅ Passou: 8
-
-✅ Todos os testes passaram!
-
-Próximo passo:
-  /pr 42
-```
-
-### Output (Com Correções)
-```
-⚠️ Tentando correções automáticas...
-
-🔧 Falha 1: ProductService.create
-   Correção: Ajustado mock
-   Status: ✅ Corrigido
-
-✅ Todos os testes passaram após correções!
-```
-
-### Pré-requisitos
-- `/execute {numero}` executado
-- Testes implementados
-
-### Arquivo de Regras
-`.cursor/rules/commands/test.md`
+**Saída**:
+- PR criado no GitHub
+- Link do PR
 
 ---
 
-## /pr
+## agent-merge
 
-### Descrição
-Prepara e cria um Pull Request completo com descrição detalhada.
+**Propósito**: Fazer merge do PR com segurança.
 
-### Sintaxe
+**Uso**:
 ```
-/pr <numero-issue>
-```
-
-### Exemplos
-```
-/pr 42
-/pr 15
+/agent-merge #123
 ```
 
-### O que faz
-1. Coleta informações do branch
-2. Compila documentação (CONTEXT, ARCHITECTURE, PLAN, TEST_REPORT)
-3. Verifica pré-requisitos (branch atualizado, linter, testes)
-4. Gera descrição estruturada do PR
-5. Cria PR no GitHub
-6. Atribui labels e reviewers
+**Pré-requisitos**:
+- PR aprovado
+- Checks passando
 
-### Output
-```
-📤 Criando Pull Request para Issue #42...
+**Ações**:
+1. Verifica aprovação
+2. Verifica conflitos
+3. Resolve conflitos simples ou pede ajuda
+4. Executa merge
+5. Limpa branch
 
-🔍 Verificações:
-   ✅ Branch atualizado
-   ✅ Linter OK
-   ✅ Testes passando
-
-✅ Pull Request criado!
-
-🔗 PR #87: [Issue #42] feat: Implementar API de produtos
-   URL: https://github.com/user/repo/pull/87
-
-Próximos passos:
-  1. Aguardar review
-  2. Após aprovação: /merge 42
-```
-
-### Pré-requisitos
-- `/test {numero}` executado com sucesso
-- Todos os testes passando
-
-### Arquivo de Regras
-`.cursor/rules/commands/pr.md`
-
----
-
-## /merge
-
-### Descrição
-Realiza merge do PR aprovado, resolvendo conflitos quando possível.
-
-### Sintaxe
-```
-/merge <numero-issue>
-```
-
-### Exemplos
-```
-/merge 42
-/merge 15
-```
-
-### O que faz
-1. Verifica aprovação do PR
-2. Verifica CI/CD
-3. Atualiza branch com main
-4. Identifica conflitos
-5. Resolve conflitos simples automaticamente
-6. Para conflitos complexos, pergunta ao usuário
-7. Executa squash merge
-8. Deleta branch
-9. Fecha issue
-
-### Output (Sem Conflitos)
-```
-🔀 Realizando merge da Issue #42...
-
-✅ Merge concluído!
-
-📊 Resumo:
-   🔗 PR #87 merged
-   📋 Issue #42 fechada
-   🌿 Branch deletado
-
-🎉 Issue #42 concluída com sucesso!
-```
-
-### Output (Com Conflitos)
-```
-⚠️ Conflitos detectados:
-
-🔧 Conflito 1: src/routes/index.ts
-   Tipo: Import statements
-   Resolução: ✅ Auto-resolvido
-
-✅ Merge concluído!
-```
-
-### Pré-requisitos
-- PR criado e aprovado
-- CI/CD passando
-
-### Arquivo de Regras
-`.cursor/rules/commands/merge.md`
-
----
-
-## Fluxo Completo
-
-```
-/issue "Implementar feature X"
-         │
-         ▼
-      Issue #42
-         │
-         ▼
-    /start 42
-         │
-         ▼
-     /plan 42
-         │
-         ▼
-   /execute 42
-         │
-         ▼
-    /test 42
-         │
-         ▼
-      /pr 42
-         │
-    [Review]
-         │
-         ▼
-   /merge 42
-         │
-         ▼
-    Concluído!
-```
+**Saída**:
+- Merge concluído ou
+- Relatório de conflitos para resolução manual

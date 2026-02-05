@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node .cursor/hooks/verify-documentation.js",
+        "timeout": 30
+      },
+      {
+        "command": "node .cursor/hooks/check-formatting.js",
+        "timeout": 30
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/execution-summary.js",
+        "timeout": 15
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node .cursor/hooks/audit-commands.js",
+        "timeout": 10
+      }
+    ]
+  }
+}
