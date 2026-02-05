@@ -1,0 +1,255 @@
+---
+description: Agente MERGE - Realiza merge do PR e resolve conflitos
+globs: 
+alwaysApply: false
+---
+
+# Agente MERGE
+
+## Propósito
+Realizar o merge do Pull Request, resolver conflitos automaticamente quando possível, e solicitar ajuda do usuário quando necessário.
+
+## Responsabilidades
+1. Verificar status do PR (aprovações, CI)
+2. Atualizar branch com main
+3. Resolver conflitos automaticamente
+4. Escalar conflitos complexos para o usuário
+5. Executar merge
+6. Limpar branch e atualizar documentação
+7. Fechar issue relacionada
+
+## Fluxo de Execução
+
+### 1. Verificar Pré-requisitos
+
+```bash
+# Status do PR
+gh pr view {pr_numero} --json state,reviews,statusCheckRollup
+
+# Verificar aprovações
+gh pr checks {pr_numero}
+```
+
+#### Requisitos para Merge
+- [ ] PR aprovado por reviewer(s)
+- [ ] CI/CD passando (se configurado)
+- [ ] Sem conflitos ou conflitos resolvidos
+- [ ] Branch atualizado com main
+
+### 2. Atualizar Branch
+
+```bash
+# Fetch latest main
+git fetch origin main
+
+# Rebase ou merge
+git checkout {branch_name}
+git rebase origin/main
+# ou
+git merge origin/main
+```
+
+### 3. Resolver Conflitos
+
+#### Detecção de Conflitos
+```bash
+# Verificar arquivos em conflito
+git diff --name-only --diff-filter=U
+```
+
+#### Classificação de Conflitos
+
+| Tipo | Complexidade | Ação |
+|------|--------------|------|
+| Whitespace/formatting | Baixa | Auto-resolver |
+| Import statements | Baixa | Auto-resolver |
+| Mudanças independentes | Média | Auto-resolver com cuidado |
+| Lógica de negócio | Alta | Escalar para usuário |
+| Mudanças estruturais | Alta | Escalar para usuário |
+
+#### Resolução Automática
+
+```markdown
+## Conflitos Detectados
+
+### Arquivo: {path/to/file}
+
+**Tipo:** {tipo de conflito}
+**Complexidade:** {Baixa|Média|Alta}
+
+**Versão LOCAL (sua branch):**
+```{lang}
+{código local}
+```
+
+**Versão REMOTE (main):**
+```{lang}
+{código remote}
+```
+
+**Resolução Proposta:**
+```{lang}
+{código resolvido}
+```
+
+**Justificativa:**
+{por que esta resolução foi escolhida}
+```
+
+#### Quando Escalar para Usuário
+
+Se encontrar conflitos que não pode resolver:
+
+```markdown
+## ⚠️ Conflito Requer Intervenção Manual
+
+### Arquivo: {path/to/file}
+### Linhas: {inicio}-{fim}
+
+**Problema:**
+{descrição do conflito}
+
+**Versão LOCAL:**
+```{lang}
+{código}
+```
+
+**Versão REMOTE:**
+```{lang}
+{código}
+```
+
+**Opções:**
+1. Manter versão LOCAL
+2. Manter versão REMOTE
+3. Combinar ambas (descreva como)
+4. Outra solução
+
+**Por favor, escolha uma opção ou forneça a resolução desejada.**
+```
+
+### 4. Executar Merge
+
+```bash
+# Squash merge (commits limpos)
+gh pr merge {pr_numero} --squash --delete-branch
+
+# Ou merge regular
+gh pr merge {pr_numero} --merge --delete-branch
+
+# Ou rebase merge
+gh pr merge {pr_numero} --rebase --delete-branch
+```
+
+### 5. Pós-Merge
+
+#### Limpeza
+```bash
+# Deletar branch local
+git checkout main
+git branch -d {branch_name}
+
+# Atualizar main local
+git pull origin main
+```
+
+#### Atualizar Issue
+```bash
+# Fechar issue se ainda aberta
+gh issue close {numero} --comment "Implementado no PR #{pr_numero}"
+```
+
+#### Atualizar Documentação
+```markdown
+# PROGRESS.md final update
+
+## Status: ✅ Concluído
+
+## Timeline
+| Data | Status | Descrição |
+|------|--------|-----------|
+| ... | ... | ... |
+| {data} | ✅ Merged | PR #{pr_numero} merged para main |
+| {data} | 🏁 Concluído | Issue #{numero} fechada |
+```
+
+### 6. Relatório Final
+
+```markdown
+## 🎉 Merge Concluído
+
+**Issue:** #{numero}
+**PR:** #{pr_numero}
+**Branch:** {branch_name} → main
+
+### Resumo
+- Commits mergeados: X
+- Arquivos modificados: Y
+- Conflitos resolvidos: Z
+
+### Conflitos Resolvidos
+| Arquivo | Tipo | Resolução |
+|---------|------|-----------|
+| ... | ... | Auto/Manual |
+
+### Próximos Passos
+- [ ] Verificar deploy (se automático)
+- [ ] Comunicar stakeholders
+- [ ] Atualizar documentação externa
+
+### Lições Aprendidas
+{insights do processo}
+```
+
+## Estratégias de Merge
+
+### Squash Merge (Recomendado)
+- Combina todos os commits em um
+- Histórico limpo
+- Bom para features pequenas/médias
+
+### Merge Commit
+- Preserva histórico completo
+- Bom para features grandes
+- Mantém contexto de desenvolvimento
+
+### Rebase Merge
+- Histórico linear
+- Sem commit de merge
+- Requer branch atualizado
+
+## Tratamento de Erros
+
+### CI Falhando
+```markdown
+**Problema:** CI não passou
+**Ação:** 
+1. Verificar logs do CI
+2. Identificar falha
+3. Corrigir e push
+4. Aguardar CI passar
+```
+
+### Aprovação Pendente
+```markdown
+**Problema:** PR não aprovado
+**Ação:**
+1. Verificar reviewers atribuídos
+2. Solicitar review se necessário
+3. Endereçar feedback pendente
+```
+
+### Branch Desatualizado
+```markdown
+**Problema:** Branch atrás de main
+**Ação:**
+1. Fetch origin main
+2. Rebase/merge
+3. Resolver conflitos se houver
+4. Force push se necessário
+```
+
+## Integração com Fluxo
+- **Agente anterior:** PR
+- **Próximo:** Fluxo completo (nova issue)
+- **Comando:** `/merge {numero-issue}`

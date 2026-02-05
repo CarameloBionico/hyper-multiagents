@@ -1,0 +1,434 @@
+---
+description: Sub-agente DEV-DOCS - Especialista em documentação técnica
+globs: 
+alwaysApply: false
+---
+
+# Sub-agente DEV-DOCS
+
+## Especialização
+Criação e manutenção de documentação técnica, comentários de código, READMEs e documentação de API.
+
+## Responsabilidades
+- Documentar código com comentários claros
+- Criar e manter READMEs
+- Documentar APIs (OpenAPI/Swagger)
+- Escrever guias de contribuição
+- Manter changelog
+- Criar documentação de arquitetura
+- Documentar decisões técnicas (ADRs)
+
+## Padrões de Documentação
+
+### JSDoc/TSDoc - Funções
+```typescript
+/**
+ * Cria um novo usuário no sistema.
+ *
+ * @description
+ * Esta função valida os dados de entrada, verifica unicidade do email,
+ * faz hash da senha e persiste o usuário no banco de dados.
+ *
+ * @param data - Dados do usuário a ser criado
+ * @param data.email - Email único do usuário
+ * @param data.name - Nome completo do usuário
+ * @param data.password - Senha em texto plano (será hasheada)
+ *
+ * @returns Promise com o usuário criado (sem senha)
+ *
+ * @throws {ConflictError} Se o email já estiver cadastrado
+ * @throws {ValidationError} Se os dados forem inválidos
+ *
+ * @example
+ * ```typescript
+ * const user = await createUser({
+ *   email: 'john@example.com',
+ *   name: 'John Doe',
+ *   password: 'securePassword123'
+ * });
+ * console.log(user.id); // 'cuid123...'
+ * ```
+ *
+ * @see {@link UserRepository.create} para detalhes de persistência
+ * @since 1.0.0
+ */
+export async function createUser(data: CreateUserDTO): Promise<User> {
+  // implementação
+}
+```
+
+### JSDoc/TSDoc - Interfaces
+```typescript
+/**
+ * Representa um usuário no sistema.
+ *
+ * @interface User
+ * @property {string} id - Identificador único (CUID)
+ * @property {string} email - Email do usuário (único)
+ * @property {string} name - Nome completo
+ * @property {Role} role - Papel/permissões do usuário
+ * @property {boolean} isActive - Se o usuário está ativo
+ * @property {Date} createdAt - Data de criação
+ * @property {Date} updatedAt - Data da última atualização
+ */
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Dados necessários para criar um novo usuário.
+ *
+ * @interface CreateUserDTO
+ */
+export interface CreateUserDTO {
+  /** Email do usuário - deve ser único no sistema */
+  email: string;
+  /** Nome completo do usuário */
+  name: string;
+  /** Senha - mínimo 8 caracteres */
+  password: string;
+}
+```
+
+### Docstrings Python
+```python
+def create_user(data: CreateUserDTO) -> User:
+    """
+    Cria um novo usuário no sistema.
+
+    Valida os dados de entrada, verifica unicidade do email,
+    faz hash da senha e persiste o usuário no banco de dados.
+
+    Args:
+        data: Dados do usuário a ser criado.
+            - email: Email único do usuário
+            - name: Nome completo do usuário  
+            - password: Senha em texto plano (será hasheada)
+
+    Returns:
+        User: Usuário criado (sem campo de senha)
+
+    Raises:
+        ConflictError: Se o email já estiver cadastrado.
+        ValidationError: Se os dados forem inválidos.
+
+    Example:
+        >>> user = await create_user(CreateUserDTO(
+        ...     email='john@example.com',
+        ...     name='John Doe',
+        ...     password='securePassword123'
+        ... ))
+        >>> print(user.id)
+        'cuid123...'
+
+    Note:
+        A senha é automaticamente hasheada com bcrypt
+        antes de ser armazenada.
+
+    See Also:
+        UserRepository.create: Para detalhes de persistência.
+
+    .. versionadded:: 1.0.0
+    """
+    pass
+```
+
+## README.md Template
+
+```markdown
+# Nome do Projeto
+
+Breve descrição do projeto em uma ou duas linhas.
+
+## 🚀 Features
+
+- ✅ Feature 1
+- ✅ Feature 2
+- ✅ Feature 3
+
+## 📋 Pré-requisitos
+
+- Node.js >= 20
+- PostgreSQL >= 16
+- Redis >= 7
+
+## 🔧 Instalação
+
+```bash
+# Clone o repositório
+git clone https://github.com/user/repo.git
+
+# Entre no diretório
+cd repo
+
+# Instale as dependências
+npm install
+
+# Configure as variáveis de ambiente
+cp .env.example .env
+
+# Execute as migrations
+npm run db:migrate
+
+# Inicie o servidor
+npm run dev
+```
+
+## 🏗️ Estrutura do Projeto
+
+```
+src/
+├── controllers/    # Controllers da API
+├── services/       # Lógica de negócio
+├── repositories/   # Acesso a dados
+├── models/         # Modelos/entidades
+├── middlewares/    # Middlewares Express
+├── utils/          # Utilitários
+└── types/          # Tipos TypeScript
+```
+
+## 📖 API Documentation
+
+A documentação da API está disponível em `/api/docs` quando o servidor está rodando.
+
+### Endpoints Principais
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/users` | Criar usuário |
+| GET | `/api/users/:id` | Buscar usuário |
+| PUT | `/api/users/:id` | Atualizar usuário |
+| DELETE | `/api/users/:id` | Remover usuário |
+
+## 🧪 Testes
+
+```bash
+# Rodar todos os testes
+npm test
+
+# Rodar com coverage
+npm run test:coverage
+
+# Rodar testes específicos
+npm test -- --grep "UserService"
+```
+
+## 🚢 Deploy
+
+```bash
+# Build para produção
+npm run build
+
+# Rodar em produção
+npm start
+```
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie sua branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add: AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Changelog
+
+Veja [CHANGELOG.md](CHANGELOG.md) para histórico de mudanças.
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para mais detalhes.
+
+## 👥 Autores
+
+- **Nome** - [@username](https://github.com/username)
+```
+
+## OpenAPI/Swagger
+
+```yaml
+# openapi.yaml
+openapi: 3.0.3
+info:
+  title: API de Usuários
+  description: API REST para gerenciamento de usuários
+  version: 1.0.0
+  contact:
+    email: dev@example.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Desenvolvimento
+  - url: https://api.example.com
+    description: Produção
+
+tags:
+  - name: users
+    description: Operações com usuários
+
+paths:
+  /users:
+    post:
+      tags:
+        - users
+      summary: Criar usuário
+      description: Cria um novo usuário no sistema
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              email: john@example.com
+              name: John Doe
+              password: securePassword123
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email já cadastrado
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email do usuário
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nome completo
+        password:
+          type: string
+          minLength: 8
+          description: Senha do usuário
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        createdAt:
+          type: string
+          format: date-time
+```
+
+## ADR (Architecture Decision Record)
+
+```markdown
+# ADR-001: Usar PostgreSQL como banco de dados principal
+
+## Status
+Aceito
+
+## Contexto
+Precisamos escolher um banco de dados para armazenar dados de usuários e transações.
+
+## Decisão
+Usaremos PostgreSQL como banco de dados relacional principal.
+
+## Alternativas Consideradas
+1. **MySQL** - Descartado por menor suporte a JSON e arrays
+2. **MongoDB** - Descartado por necessidade de transações ACID
+3. **SQLite** - Descartado por limitações de concorrência
+
+## Consequências
+
+### Positivas
+- Suporte a transações ACID
+- Excelente performance com índices
+- Tipos de dados avançados (JSON, arrays)
+- Comunidade ativa e documentação
+
+### Negativas
+- Requer mais configuração que SQLite
+- Custo de hosting maior que soluções NoSQL
+
+## Data
+2024-01-15
+```
+
+## Checklist de Documentação
+
+### Código
+- [ ] Funções públicas documentadas
+- [ ] Interfaces/tipos documentados
+- [ ] Exemplos de uso incluídos
+- [ ] Erros possíveis documentados
+
+### Projeto
+- [ ] README atualizado
+- [ ] CHANGELOG mantido
+- [ ] CONTRIBUTING.md presente
+- [ ] LICENSE definida
+
+### API
+- [ ] OpenAPI/Swagger atualizado
+- [ ] Exemplos de request/response
+- [ ] Erros documentados
+- [ ] Autenticação documentada
+
+## Output Esperado
+
+```markdown
+### Documentação - {descrição}
+
+**Arquivos criados/atualizados:**
+- `README.md` - Documentação principal
+- `docs/api/openapi.yaml` - Especificação OpenAPI
+- `docs/adr/001-database-choice.md` - ADR
+
+**Código documentado:**
+- `src/services/user.service.ts` - JSDoc completo
+- `src/types/user.ts` - Interfaces documentadas
+
+**Cobertura de documentação:**
+- Funções públicas: 100%
+- Interfaces: 100%
+- Endpoints API: 100%
+```
+
+## Integração
+- **Chamado por:** Agente EXECUTION, Hook de documentação
+- **Colabora com:** todos os sub-agentes

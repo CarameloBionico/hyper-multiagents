@@ -1,0 +1,249 @@
+---
+description: Hook de Documentação - Verifica e completa documentação após cada tarefa
+globs: 
+alwaysApply: false
+---
+
+# Hook de Documentação
+
+## Propósito
+Garantir que todo código inserido ou modificado esteja adequadamente documentado.
+
+## Quando é Executado
+- Após cada tarefa concluída pelo agente EXECUTION
+- Antes de cada commit de tarefa
+- Pode ser chamado manualmente
+
+## Fluxo de Verificação
+
+### 1. Identificar Arquivos Modificados
+```bash
+git diff --name-only HEAD~1
+```
+
+### 2. Para Cada Arquivo
+
+#### Verificar por Tipo de Arquivo
+
+**TypeScript/JavaScript (.ts, .tsx, .js, .jsx)**
+```
+✓ Funções exportadas têm JSDoc/TSDoc
+✓ Interfaces/Types têm descrição
+✓ Parâmetros complexos documentados
+✓ Retornos documentados
+✓ Exceções documentadas (@throws)
+✓ Exemplos de uso quando útil (@example)
+```
+
+**Python (.py)**
+```
+✓ Funções/métodos têm docstrings
+✓ Classes têm docstrings
+✓ Parâmetros documentados (Args:)
+✓ Retornos documentados (Returns:)
+✓ Exceções documentadas (Raises:)
+✓ Exemplos quando útil (Example:)
+```
+
+**Go (.go)**
+```
+✓ Funções exportadas (PascalCase) têm comentário
+✓ Structs exportados têm comentário
+✓ Comentário começa com nome do elemento
+```
+
+### 3. Checklist de Verificação
+
+```markdown
+## Verificação de Documentação
+
+### Arquivo: {path}
+
+#### Funções/Métodos
+| Função | JSDoc | Params | Return | Throws | Status |
+|--------|-------|--------|--------|--------|--------|
+| createUser | ✅ | ✅ | ✅ | ✅ | OK |
+| updateUser | ❌ | - | - | - | PENDENTE |
+
+#### Interfaces/Types
+| Nome | Descrição | Props Documentadas | Status |
+|------|-----------|-------------------|--------|
+| User | ✅ | ✅ | OK |
+| CreateUserDTO | ❌ | ❌ | PENDENTE |
+
+#### Classes
+| Classe | Descrição | Métodos Doc | Status |
+|--------|-----------|-------------|--------|
+| UserService | ✅ | 3/4 | PARCIAL |
+```
+
+### 4. Completar Documentação Faltante
+
+Se documentação insuficiente for detectada:
+
+1. **Analisar contexto**
+   - Ler código da função/classe
+   - Entender propósito pelo uso
+   - Identificar parâmetros e retornos
+
+2. **Gerar documentação**
+   - Criar JSDoc/docstring apropriado
+   - Documentar parâmetros
+   - Documentar retorno
+   - Adicionar exemplo se útil
+
+3. **Aplicar mudanças**
+   - Inserir documentação no código
+   - Manter estilo consistente com projeto
+
+## Padrões de Documentação
+
+### Função Simples
+```typescript
+/**
+ * Calcula o preço total com desconto aplicado.
+ *
+ * @param price - Preço original do item
+ * @param discount - Percentual de desconto (0-100)
+ * @returns Preço final após desconto
+ */
+function calculatePrice(price: number, discount: number): number {
+  return price * (1 - discount / 100);
+}
+```
+
+### Função Complexa
+```typescript
+/**
+ * Cria um novo usuário no sistema.
+ *
+ * @description
+ * Valida os dados de entrada, verifica unicidade do email,
+ * faz hash da senha e persiste o usuário no banco de dados.
+ *
+ * @param data - Dados do usuário
+ * @param data.email - Email único do usuário
+ * @param data.name - Nome completo
+ * @param data.password - Senha (será hasheada)
+ *
+ * @returns Usuário criado (sem senha)
+ *
+ * @throws {ConflictError} Se email já existe
+ * @throws {ValidationError} Se dados inválidos
+ *
+ * @example
+ * ```typescript
+ * const user = await createUser({
+ *   email: 'john@example.com',
+ *   name: 'John Doe',
+ *   password: 'secure123'
+ * });
+ * ```
+ */
+async function createUser(data: CreateUserDTO): Promise<User> {
+  // ...
+}
+```
+
+### Interface
+```typescript
+/**
+ * Representa um usuário no sistema.
+ *
+ * @interface User
+ */
+interface User {
+  /** Identificador único (CUID) */
+  id: string;
+  /** Email do usuário (único) */
+  email: string;
+  /** Nome completo */
+  name: string;
+  /** Data de criação */
+  createdAt: Date;
+}
+```
+
+## Critérios de Qualidade
+
+### Documentação Mínima Requerida
+- [ ] Toda função/método exportado tem documentação
+- [ ] Toda interface/type exportado tem documentação
+- [ ] Toda classe exportada tem documentação
+- [ ] Parâmetros não óbvios estão documentados
+- [ ] Erros possíveis estão documentados
+
+### Documentação Ideal
+- [ ] Exemplos de uso para funções complexas
+- [ ] Links para documentação relacionada (@see)
+- [ ] Notas de versão (@since)
+- [ ] Avisos quando necessário (@deprecated, @warning)
+
+## Output do Hook
+
+### Sucesso
+```
+📝 Hook de Documentação - {arquivo}
+
+✅ Documentação verificada e completa
+
+Elementos documentados:
+  - 5 funções
+  - 3 interfaces
+  - 1 classe
+
+Nenhuma ação necessária.
+```
+
+### Com Correções
+```
+📝 Hook de Documentação - {arquivo}
+
+⚠️ Documentação incompleta detectada
+
+Ações realizadas:
+  ✅ Adicionado JSDoc: updateUser()
+  ✅ Adicionado JSDoc: deleteUser()
+  ✅ Documentada interface: UpdateUserDTO
+
+Elementos agora documentados:
+  - 5/5 funções ✅
+  - 3/3 interfaces ✅
+  - 1/1 classes ✅
+```
+
+## Configuração
+
+### Ignorar Arquivos
+Arquivos que não precisam de verificação:
+- `*.test.ts` - Arquivos de teste
+- `*.spec.ts` - Arquivos de spec
+- `*.d.ts` - Arquivos de definição
+- `index.ts` - Arquivos barrel
+- `*.config.*` - Arquivos de configuração
+
+### Nível de Rigor
+```yaml
+# Configuração do hook
+documentation:
+  level: strict  # strict | moderate | minimal
+  
+  strict:
+    - all_exports_documented
+    - all_params_documented
+    - all_returns_documented
+    - examples_for_complex
+    
+  moderate:
+    - all_exports_documented
+    - complex_params_documented
+    
+  minimal:
+    - public_functions_documented
+```
+
+## Integração
+
+- **Chamado por:** Agente EXECUTION (após cada tarefa)
+- **Usa:** Sub-agente @dev-docs para gerar documentação
+- **Atualiza:** Arquivos de código com documentação

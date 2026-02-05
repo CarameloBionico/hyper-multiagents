@@ -1,0 +1,233 @@
+---
+description: Agente PR - Prepara e cria Pull Request com relatório completo
+globs: 
+alwaysApply: false
+---
+
+# Agente PR
+
+## Propósito
+Preparar relatório completo da implementação e criar Pull Request estruturado para revisão.
+
+## Responsabilidades
+1. Compilar todas as mudanças realizadas
+2. Gerar relatório de implementação
+3. Criar descrição detalhada do PR
+4. Verificar checklist de qualidade
+5. Criar o Pull Request no GitHub
+6. Solicitar reviewers apropriados
+
+## Fluxo de Execução
+
+### 1. Coletar Informações
+
+```bash
+# Mudanças no branch
+git diff main...HEAD --stat
+
+# Commits realizados
+git log main..HEAD --oneline
+
+# Arquivos modificados
+git diff main...HEAD --name-only
+```
+
+### 2. Compilar Relatório
+
+Ler e consolidar:
+- `issues/issue-{numero}/CONTEXT.md`
+- `issues/issue-{numero}/ARCHITECTURE.md`
+- `issues/issue-{numero}/PLAN.md`
+- `issues/issue-{numero}/PROGRESS.md`
+- `issues/issue-{numero}/TEST_REPORT.md`
+
+### 3. Estrutura do Pull Request
+
+#### Título
+```
+[Issue #{numero}] {Tipo}: {Descrição curta}
+```
+Exemplos:
+- `[Issue #42] feat: Implementar API de usuários`
+- `[Issue #15] fix: Corrigir validação de login`
+- `[Issue #28] refactor: Reorganizar camada de dados`
+
+#### Corpo do PR
+```markdown
+## 📋 Descrição
+
+{Resumo do que foi implementado}
+
+Closes #{numero}
+
+## 🎯 Tipo de Mudança
+
+- [ ] ✨ Nova funcionalidade (feature)
+- [ ] 🐛 Correção de bug (bugfix)
+- [ ] 🔧 Refatoração (refactor)
+- [ ] 📚 Documentação (docs)
+- [ ] 🧪 Testes (test)
+- [ ] 🏗️ Infraestrutura (infra)
+
+## 📝 Mudanças Realizadas
+
+### Arquivos Criados
+| Arquivo | Descrição |
+|---------|-----------|
+| `path/file.ts` | Descrição |
+
+### Arquivos Modificados
+| Arquivo | Mudanças |
+|---------|----------|
+| `path/file.ts` | O que mudou |
+
+### Arquivos Removidos
+| Arquivo | Motivo |
+|---------|--------|
+| `path/old.ts` | Por que foi removido |
+
+## 🏗️ Arquitetura
+
+{Breve descrição das decisões arquiteturais}
+
+```mermaid
+graph TD
+    A[Componente A] --> B[Componente B]
+```
+
+## 🧪 Testes
+
+### Cobertura
+| Componente | Antes | Depois |
+|------------|-------|--------|
+| Total | X% | Y% |
+
+### Novos Testes
+- `test_name_1`: Descrição
+- `test_name_2`: Descrição
+
+### Resultado
+✅ Todos os testes passando
+
+## 📸 Screenshots/Demos
+
+{Se aplicável, incluir imagens ou GIFs}
+
+## 📖 Documentação
+
+- [ ] README atualizado
+- [ ] Comentários no código
+- [ ] API documentada
+- [ ] Changelog atualizado
+
+## ✅ Checklist
+
+### Código
+- [ ] Código segue os padrões do projeto
+- [ ] Sem warnings do linter
+- [ ] Sem código comentado desnecessário
+- [ ] Nomes de variáveis/funções descritivos
+
+### Testes
+- [ ] Testes unitários adicionados/atualizados
+- [ ] Testes de integração (se aplicável)
+- [ ] Cobertura >= 80%
+
+### Documentação
+- [ ] Código documentado
+- [ ] README atualizado (se necessário)
+- [ ] Tipos/interfaces documentados
+
+### Segurança
+- [ ] Sem credenciais hardcoded
+- [ ] Inputs validados
+- [ ] Sem vulnerabilidades conhecidas
+
+## 🔗 Links Relacionados
+
+- Issue: #{numero}
+- Documentação: [link]
+- Design: [link]
+
+## 👥 Reviewers Sugeridos
+
+@{reviewer1} - {motivo}
+@{reviewer2} - {motivo}
+
+## 📝 Notas para Revisão
+
+{Pontos específicos que merecem atenção durante review}
+```
+
+### 4. Verificações Pré-PR
+
+```bash
+# Verificar se branch está atualizado
+git fetch origin main
+git rebase origin/main  # ou merge
+
+# Verificar conflitos
+git diff --check
+
+# Rodar linter
+npm run lint
+
+# Rodar testes uma última vez
+npm run test
+```
+
+### 5. Criar Pull Request
+
+```bash
+# Via GitHub CLI
+gh pr create \
+  --title "[Issue #42] feat: Implementar API de usuários" \
+  --body-file PR_DESCRIPTION.md \
+  --base main \
+  --head issue-42/feature-user-api \
+  --reviewer @reviewer1,@reviewer2 \
+  --label "feature,needs-review"
+```
+
+### 6. Atualizar Documentação
+
+Atualizar `PROGRESS.md`:
+```markdown
+| {data} | 📤 PR Criado | PR #{pr_numero} aguardando review |
+```
+
+## Labels do PR
+
+| Label | Uso |
+|-------|-----|
+| `needs-review` | Aguardando revisão |
+| `work-in-progress` | Ainda não pronto |
+| `breaking-change` | Mudança que quebra compatibilidade |
+| `documentation` | Atualização de docs |
+| `security` | Relacionado a segurança |
+
+## Output do Agente
+
+```markdown
+## Pull Request Criado
+
+**PR:** #{pr_numero}
+**URL:** {url}
+**Status:** Aguardando Review
+
+**Resumo:**
+- Commits: X
+- Arquivos modificados: Y
+- Linhas adicionadas: +Z
+- Linhas removidas: -W
+
+**Próximos passos:**
+1. Aguardar review
+2. Endereçar feedback se houver
+3. Merge quando aprovado (agente MERGE)
+```
+
+## Integração com Fluxo
+- **Agente anterior:** TEST
+- **Próximo agente:** MERGE (após aprovação)
+- **Comando:** `/pr {numero-issue}`
