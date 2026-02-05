@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "subagentStop": [
+      {
+        "command": "powershell -ExecutionPolicy Bypass -File .cursor/hooks/subagent-notify.ps1"
+      }
+    ],
+    "stop": [
+      {
+        "command": "powershell -ExecutionPolicy Bypass -File .cursor/hooks/agent-notify.ps1"
+      }
+    ]
+  }
+}
